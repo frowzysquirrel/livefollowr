@@ -1,0 +1,24 @@
+<div class="container-lg">
+  <h1>
+    LiveFollowr+ users
+    <app-live-loader size="50" [inline]="true" *ngIf="loading"></app-live-loader>
+    <small *ngIf="users.length">({{ users.length }})</small>
+  </h1>
+  <br /><br />
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col"># of Visits</th>
+        <th scope="col">Registered at</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.username }}</td>
+        <td>{{ user.visits }}</td>
+        <td>{{ user.created_at | date: 'yyyy-MM-dd HH:mm:ss'  }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

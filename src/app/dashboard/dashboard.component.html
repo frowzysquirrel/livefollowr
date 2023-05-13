@@ -1,0 +1,219 @@
+<div class="dashboard" [ngClass]="{'dark': darkMode}">
+  <div class="container-lg">
+    <nav>
+      <a routerLink="/home">
+        <img [src]="'assets/logo-small' + (darkMode ? '-w' : '') + '.png'" alt="LiveFollowr+">
+      </a>
+      <div class="nav-buttons">
+        <button class="btn btn-primary btn-sm" (click)="showFilters = !showFilters" *ngIf="streams.length">
+          {{showFilters ? 'Hide' : 'Show'}} filters
+        </button>
+      </div>
+    </nav>
+    <br />
+    <ng-container *ngIf="streams.length">
+      <div class="filters-ghost" [ngClass]="{'visible': showFilters}"></div>
+      <div class="filters" [ngClass]="{'visible': showFilters}">
+        <br />
+        <div class="row">
+          <div class="col-sm-6 col-lg-4">
+            <div class="form-group">
+              <ul class="autocomplete" *ngIf="noGamesFound || gamesFound.length" (clickOutside)="onClickOutsideAutocomplete($event)">
+                <li class="info" *ngIf="noGamesFound">
+                  No games found.
+                </li>
+                <li *ngFor="let game of gamesFound" (click)="selectGameFilter(game.name)">
+                  {{game.name}}
+                  <img [src]="game.box_art_url">
+                </li>
+              </ul>
+              <label for="gameFilter">Filter by category</label>
+              <input type="text"
+                class="form-control"
+                id="gameFilter"
+                name="gameFilter"
+                placeholder="Start typing..."
+                [(ngModel)]="selectedGameFilter"
+                (keyup)="searchGame($event)">
+                <app-live-loader
+                  [inline]="true"
+                  size="30"
+                  [style]="{'position': 'absolute', 'right': '5px', 'top': '34px'}"
+                  *ngIf="gameFilterLoading"></app-live-loader>
+                <p>
+                  <ng-container *ngIf="!gameFilterId">
+                    <ng-container *ngFor="let game of quickFilters; index as i;">
+                      <a href="/feed/{{game[0]}}">
+                        {{game[0]}}
+                      </a>
+                      <ng-container *ngIf="(i + 1) < quickFilters.length">&nbsp;-&nbsp;</ng-container>
+                    </ng-container>
+                  </ng-container>
+                </p>
+            </div>
+            <!-- <div class="form-check">
+              <label class="form-check-label">
+                <input class="form-check-input" type="checkbox" value="0" (change)="followingFilter = followingFilter ? 0 : 1">
+                  Show only streamers that you follow
+                <span class="form-check-sign">
+                  <span class="check"></span>
+                </span>
+              </label>
+              <br /><br />
+            </div> -->
+            <button type="button" class="btn btn-success" (click)="applyFilters()">Apply</button>
+            <br /><br /><br />
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <p *ngIf="streams.length">These are the livestreams of people that follow you</p>
+    <ng-container>
+      <div class="row">
+
+        <!-- FEATURED STREAMER -->
+        <div class="col-12 col-sm-6 col-lg-4 stream featured" *ngIf="featured && !firstLoad">
+          <br />
+          <small class="featured-indicator">Featured</small>
+          <div class="img-container">
+            <a href="https://www.twitch.tv/{{featured.userName}}" target="_blank">
+              <div class="overlay" *ngIf="featured.live">
+                <button type="button" class="btn btn-round">Watch stream</button>
+              </div>
+              <ng-container *ngIf="featured.live">
+                <iframe
+                  [src]="featuredUrl | safe"
+                  height="197">
+                </iframe>
+              </ng-container>
+              <ng-container *ngIf="!featured.live">
+                <img [src]="featured.thumbnail" [alt]="featured.userName">
+              </ng-container>
+              <i *ngIf="featured.live">live</i>
+              <span class="viewers" *ngIf="featured.viewerCount">{{featured.viewerCount}} viewer{{featured.viewerCount > 1 ? 's' : ''}}</span>
+            </a>
+          </div>
+
+          <div class="author-container">
+            <a href="https://www.twitch.tv/{{featured.userName}}/videos/all" target="_blank">
+              <img [src]="featured.pic" alt="Circle Image"
+                class="img-circle img-no-padding img-responsive">
+            </a>
+          </div>
+
+          <div class="data-container">
+            <a href="https://www.twitch.tv/{{featured.userName}}" target="_blank" title="Watch stream">
+              <strong>{{featured.title}}</strong> <br />
+            </a>
+            <a href="https://www.twitch.tv/{{featured.userName}}/videos/all" target="_blank">
+              <span>{{featured.userName}}</span><br />
+            </a>
+            <a href="https://www.twitch.tv/directory/game/{{featured.game}}"
+              target="_blank">
+              <span>{{featured.game}}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- STREAMS -->
+        <div class="col-12 col-sm-6 col-lg-4 stream" [ngClass]="{'scroll-target': stream.scrollTarget}"
+          *ngFor="let stream of streams">
+          <br />
+          <div class="img-container">
+            <a href="https://www.twitch.tv/{{stream.userName}}" target="_blank">
+              <div class="overlay">
+                <button type="button" class="btn btn-round">Watch stream</button>
+              </div>
+              <img [src]="stream.thumbnail" [alt]="stream.userName">
+              <b *ngIf="mutualFollows.includes(stream.userName)">following</b>
+              <i>live</i>
+              <span class="viewers">{{stream.viewerCount}} viewer{{stream.viewerCount > 1 ? 's' : ''}}</span>
+            </a>
+          </div>
+
+          <div class="author-container">
+            <a href="https://www.twitch.tv/{{stream.userName}}/videos/all" target="_blank">
+              <img [src]="picsAndGames[stream.userName.toLowerCase()].pic" alt="Circle Image"
+                class="img-circle img-no-padding img-responsive">
+            </a>
+          </div>
+
+          <div class="data-container">
+            <a href="https://www.twitch.tv/{{stream.userName}}" target="_blank" title="Watch stream">
+              <strong>{{stream.title}}</strong> <br />
+            </a>
+            <a href="https://www.twitch.tv/{{stream.userName}}/videos/all" target="_blank">
+              <span>{{stream.userName}}</span><br />
+            </a>
+            <a href="https://www.twitch.tv/directory/game/{{picsAndGames[stream.userName.toLowerCase()].game}}"
+              target="_blank">
+              <span>{{picsAndGames[stream.userName.toLowerCase()].game}}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <h3 class="text-center" *ngIf="loading && firstLoad">
+      <app-loading-messages></app-loading-messages>
+      <br /><br />
+      <p>
+        If it takes a bit to load, congratulations! That means you have a lot of followers ❤️
+      </p>
+      <p *ngIf="selectedGameFilter">
+        <br />
+        Searching for <strong>{{selectedGameFilter}}</strong> streamers. Stand by.
+      </p>
+    </h3>
+
+    <h3 class="text-center" *ngIf="noStreamersFound">
+      <ng-container *ngIf="streams.length">
+        No more streamers were found 😔
+      </ng-container>
+      <ng-container *ngIf="!streams.length">
+        None of your followers are streaming <strong>{{selectedGameFilter}}</strong> right now 😔 <br />
+        Try again in a few minutes<ng-container *ngIf="selectedGameFilter">.</ng-container>
+        <ng-container *ngIf="!selectedGameFilter">to see if any of them go live.</ng-container>
+      </ng-container>
+      <br /><br />
+      <button type="button" class="btn btn-danger btn-lg" (click)="reload()">Reload</button>
+      <ng-container *ngIf="selectedGameFilter">
+        &nbsp;&nbsp;
+        <a href="/feed" class="btn btn-primary btn-lg">Clear filters</a>
+      </ng-container>
+    </h3>
+
+    <ng-container *ngIf="loading">
+      <br /><br />
+      <div class="progress-container progress-success">
+        <div class="progress first-load" *ngIf="!streamsPool.length">
+          <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="100" aria-valuemin="100" aria-valuemax="100"></div>
+        </div>
+        <div class="progress" *ngIf="streamsPool.length">
+          <div *ngIf="!afterPoolLoading" class="progress-bar progress-bar-primary" role="progressbar" aria-valuemin="0"
+            aria-valuemax="100" [style.width]="(streamsPool.length * 100) / fetchAmount + '%'">
+          </div>
+          <div *ngIf="afterPoolLoading" class="progress-bar progress-bar-primary" role="progressbar" aria-valuemin="0"
+            aria-valuemax="100" [style.width]="(afterPoolLoading * 100) / 4 + '%'">
+          </div>
+        </div>
+      </div>
+      <br /><br />
+      <app-live-loader size="100" [style]="{'margin': '0 auto'}"></app-live-loader>
+    </ng-container>
+
+    <ng-container *ngIf="!loading && !noStreamersFound">
+      <br /><br />
+      <div class="text-center">
+        <button type="button" class="btn btn-danger btn-lg" (click)="infinite()">Show more</button>
+        <ng-container *ngIf="selectedGameFilter">
+          &nbsp;&nbsp;
+          <a href="/feed" class="btn btn-primary btn-lg">Clear filters</a>
+        </ng-container>
+      </div>
+    </ng-container>
+    <br /><br />
+  </div>
+  <app-footer></app-footer>
+</div>

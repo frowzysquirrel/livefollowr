@@ -1,0 +1,20 @@
+<div class="container-lg">
+  <h1>
+    LiveFollowr+ feature requests
+    <app-live-loader size="50" [inline]="true" *ngIf="loading"></app-live-loader>
+    <small *ngIf="users.length">({{ users.length }})</small>
+  </h1>
+  <br /><br />
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.username }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

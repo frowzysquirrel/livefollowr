@@ -1,0 +1,28 @@
+<div class="background">
+  <div>
+    <div class="container-fluid hero">
+      <div class="logo text-center">
+        <img [src]="'assets/logo' + (darkMode ? '-w' : '')  + '.png'" alt="LiveFollowr.">
+      </div>
+      <h2 class="text-center">Support the streamers <br class="visible-xs" /> that support you.</h2>
+      <br />
+      <h3 class="text-center">
+        LiveFollowr+ gives you the ability to see which of your followers are live on Twitch.
+      </h3>
+      <a routerLink="/login" class="btn btn-danger btn-lg" *ngIf="!login">Get started</a>
+      <a routerLink="/feed" class="btn btn-danger btn-lg" *ngIf="login">Go To Your Feed</a>
+    </div>
+  </div>
+  <footer>
+    <p>
+      Made with ❤️ by
+      <a href="https://twitter.com/FlashForce4000" target="_blank">
+        <strong>FlashForce</strong>
+      </a>
+      &
+      <a href="https://twitter.com/FrowzySquirrel" target="_blank">
+        <strong>FrowzySquirrel</strong>
+      </a>
+    </p>
+  </footer>
+</div>

@@ -1,0 +1,12 @@
+.btn-theme {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  z-index: 2;
+
+  &.dark-mode {
+    background-color: #fafafa;
+    border: none;
+    color: #333;
+  }
+}
