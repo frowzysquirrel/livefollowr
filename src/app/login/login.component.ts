@@ -14,10 +14,7 @@ import { UserService } from '../services/user/user.service';
 export class LoginComponent implements OnInit {
   private clientId: string;
 
-  constructor(
-    private router: Router,
-    private user: UserService,
-  ) {}
+  constructor(private router: Router, private user: UserService) {}
 
   ngOnInit(): void {
     const accessToken = new URLSearchParams(
@@ -34,50 +31,24 @@ export class LoginComponent implements OnInit {
         },
       })
         .then((response) => {
-
-          // log user visit
-          axios.get(`${environment.apiUrl}/users`, {
-            params: {
-              username: response.data.data[0].display_name
-            },
-          }).then((apiSearchResponse) => {
-
-            // first time user
-            if (!apiSearchResponse.data.length) {
-              axios.post(`${environment.apiUrl}/users`, {
-                username: response.data.data[0].display_name,
-                visits: 1,
-              }).then(() => {
-                this.login(accessToken, response.data.data[0]);
-              });
-
-              // has been before, so update # of visits
-            } else {
-              const dbUser = apiSearchResponse.data[0];
-              axios.patch(`${environment.apiUrl}/users/${dbUser.id}`, {
-                visits: dbUser.visits + 1,
-              }).then(() => {
-                this.login(accessToken, response.data.data[0]);
-              });
-            }
-          });
-
+          const twitchUsername = response.data.data[0].login;
+          this.login(accessToken, twitchUsername);
         })
         .catch((errorResponse) => {
           console.log(errorResponse);
           alert('An error has occurred. Please contact Frowzy for help :)');
         });
 
-        // not logged in nor trying to, so: login
-      } else {
-        this.twitchLogin();
-      }
+      // not logged in nor trying to, so: login
+    } else {
+      this.twitchLogin();
     }
+  }
 
-    private login(token, data) {
-      localStorage.setItem('lf_token', token);
-      localStorage.setItem('lf_user', JSON.stringify(data));
-      this.router.navigate(['feed']);
+  private login(token, data) {
+    localStorage.setItem('lf_token', token);
+    localStorage.setItem('lf_user', JSON.stringify(data));
+    this.router.navigate(['feed']);
   }
 
   private twitchLogin() {
