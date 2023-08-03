@@ -16,14 +16,15 @@ import { UserService } from '../services/user/user.service';
 import { FeaturedService } from '../services/featured/featured.service';
 import { LightswitchService } from '../services/lightswitch/lightswitch.service';
 
-
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
-  public user = localStorage.getItem('lf_user') ? JSON.parse(localStorage.getItem('lf_user')) : null;
+  public user = localStorage.getItem('lf_user')
+    ? JSON.parse(localStorage.getItem('lf_user'))
+    : null;
   private token = localStorage.getItem('lf_token') ? localStorage.getItem('lf_token') : null;
   public darkMode: boolean;
 
@@ -90,7 +91,9 @@ export class DashboardComponent implements OnInit {
     // fetch featured streamer
     this.featuredService.getStreamer().then((featuredStreamer) => {
       this.featured = featuredStreamer;
-      this.featuredUrl = `https://player.twitch.tv/?channel=${this.featured.userName.toLowerCase()}&parent=${window.location.host}`;
+      this.featuredUrl = `https://player.twitch.tv/?channel=${this.featured.userName.toLowerCase()}&parent=${
+        window.location.host
+      }`;
       console.log(this.featured);
       console.log(this.featuredUrl);
 
@@ -102,28 +105,31 @@ export class DashboardComponent implements OnInit {
         if (gameFilter && gameFilter !== 'undefined') {
           this.showFilters = true;
           this.selectedGameFilter = gameFilter;
-          axios.get('https://api.twitch.tv/helix/games', {
-            params: {
-              name: gameFilter,
-            },
-            headers: this.twitchApiHeaders,
-          }).then((response) => {
-            const game = response.data.data[0];
-            if (game) {
-              this.gameFilterId = game.id;
-            }
-            this.fetch();
-          });
+          axios
+            .get('https://api.twitch.tv/helix/games', {
+              params: {
+                name: gameFilter,
+              },
+              headers: this.twitchApiHeaders,
+            })
+            .then((response) => {
+              const game = response.data.data[0];
+              if (game) {
+                this.gameFilterId = game.id;
+              }
+              this.fetch();
+            });
         } else {
           this.fetch();
         }
       });
-
     });
   }
 
   public searchGame(event) {
-    const { target: { value } } = event;
+    const {
+      target: { value },
+    } = event;
     if (!!value.trim()) {
       this.gameFilterLoading = true;
       this.isTyping = true;
@@ -132,17 +138,19 @@ export class DashboardComponent implements OnInit {
       this.typingTimeout = setTimeout(() => {
         this.isTyping = false;
         if (!this.isTyping) {
-          axios.get('https://api.twitch.tv/helix/search/categories', {
-            params: {
-              query: value,
-            },
-            headers: this.twitchApiHeaders,
-          }).then((response) => {
-            this.gamesFound = response.data.data;
-            this.noGamesFound = !(!!this.gamesFound.length);
-            this.isTyping = false;
-            this.gameFilterLoading = false;
-          });
+          axios
+            .get('https://api.twitch.tv/helix/search/categories', {
+              params: {
+                query: value,
+              },
+              headers: this.twitchApiHeaders,
+            })
+            .then((response) => {
+              this.gamesFound = response.data.data;
+              this.noGamesFound = !!!this.gamesFound.length;
+              this.isTyping = false;
+              this.gameFilterLoading = false;
+            });
         }
       }, 500);
     }
@@ -189,7 +197,7 @@ export class DashboardComponent implements OnInit {
     if (this.fetching) {
       this.loading = true;
       this.fetchRequested = true;
-    } else  {
+    } else {
       this.fetch();
     }
   }
@@ -202,18 +210,17 @@ export class DashboardComponent implements OnInit {
 
   private updateQuickFilters() {
     this.quickFilters = Object.entries(_countBy(this.picsAndGames, 'game'))
-      .sort((a, b) => a[1] > b[1] ? -1 : 1)
+      .sort((a, b) => (a[1] > b[1] ? -1 : 1))
       .filter((row) => row[0] !== 'undefined')
       .splice(0, 2);
   }
 
   private fetch() {
     this.fetching = true;
-    this.getFollowers(this.lastFollowersCursor).then((() => {
+    this.getFollowers(this.lastFollowersCursor).then(() => {
       console.log(this.streamsPool);
       this.afterPoolLoading = 1;
       if (this.streamsPool && this.streamsPool.length) {
-
         const names = [];
         const gameIds = [];
         this.streamsPool.forEach((stream) => {
@@ -239,7 +246,6 @@ export class DashboardComponent implements OnInit {
             this.picsAndGames[streamer.login].pic = streamer.profile_image_url;
           });
 
-
           // get games data
           axios({
             url: 'https://api.twitch.tv/helix/games',
@@ -255,7 +261,7 @@ export class DashboardComponent implements OnInit {
             this.afterPoolLoading = 3;
             const games = gamesResponse.data.data;
             _each(this.picsAndGames, (streamer) => {
-              const currentGame = _find(games, game => game.id === streamer.gameId);
+              const currentGame = _find(games, (game) => game.id === streamer.gameId);
               if (currentGame) {
                 streamer.game = currentGame.name;
               }
@@ -267,11 +273,13 @@ export class DashboardComponent implements OnInit {
             // get who you follow
             const queue = [];
             this.streamsPool.forEach((stream) => {
-              queue.push(axios({
-                method: 'get',
-                url: `https://api.twitch.tv/helix/users/follows?from_id=${this.user.id}&to_id=${stream.userId}`,
-                headers: this.twitchApiHeaders,
-              }));
+              queue.push(
+                axios({
+                  method: 'get',
+                  url: `https://api.twitch.tv/helix/users/follows?from_id=${this.user.id}&to_id=${stream.userId}`,
+                  headers: this.twitchApiHeaders,
+                }),
+              );
             });
 
             axios.all(queue).then((mutualFollowResponses) => {
@@ -283,7 +291,6 @@ export class DashboardComponent implements OnInit {
                   this.mutualFollows.push(follower.to_name);
                 }
               });
-
 
               // preload thumbnails
               const thumbnailQueue = [];
@@ -317,12 +324,11 @@ export class DashboardComponent implements OnInit {
             });
           });
         });
-
       } else {
         this.noStreamersFound = true;
         this.loading = false;
       }
-    }));
+    });
   }
 
   private scroll() {

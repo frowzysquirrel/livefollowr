@@ -17,9 +17,9 @@ export class LoginComponent implements OnInit {
   constructor(private router: Router, private user: UserService) {}
 
   ngOnInit(): void {
-    const accessToken = new URLSearchParams(
-      window.location.hash.replace('#', '?')
-    ).get('access_token');
+    const accessToken = new URLSearchParams(window.location.hash.replace('#', '?')).get(
+      'access_token',
+    );
 
     if (accessToken) {
       axios({
@@ -31,8 +31,7 @@ export class LoginComponent implements OnInit {
         },
       })
         .then((response) => {
-          const twitchUsername = response.data.data[0].login;
-          this.login(accessToken, twitchUsername);
+          this.login(accessToken, response.data.data[0]);
         })
         .catch((errorResponse) => {
           console.log(errorResponse);
